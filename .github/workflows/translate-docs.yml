@@ -19,6 +19,7 @@ on:
 env:
   NODE_VERSION: "20"
   TARGET_LANG: zh-Hans
+  TARGET_LANG_BRANCH: zhHans
 
 jobs:
   translate:
@@ -60,7 +61,6 @@ jobs:
           AI_ENDPOINT: ${{ secrets.AI_ENDPOINT }}
           TARGET_LANG: ${{ env.TARGET_LANG }}
           FORCE_RETRANSLATE: ${{ inputs.force_retranslate || false }}
-          TEST_FILE: ./docs/develop/switch_doc_engine.md
           TRANSLATE_FILES: ${{ steps.changed.outputs.files }}
 
       - name: Create Pull Request
@@ -73,7 +73,7 @@ jobs:
 
             Triggered by: `${{ github.event_name }}`
             Commit: `${{ github.sha }}`
-          branch: translation/${{ env.TARGET_LANG }}
+          branch: translation/${{ env.TARGET_LANG_BRANCH }}
           base: main
           commit-message: "docs: translate to ${{ env.TARGET_LANG }}"
           labels: |
