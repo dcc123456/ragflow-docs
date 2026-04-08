@@ -30,21 +30,19 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: ${{ env.NODE_VERSION }}
-          cache: "npm"
-          cache-dependency-path: website/package-lock.json
 
       - name: Install dependencies
         run: npm ci
         working-directory: website
 
       - name: Install AI SDK
-        run: |
-          npm install @anthropic-ai/sdk openai
+        run: npm install @anthropic-ai/sdk openai
         working-directory: website
 
       - name: Translate docs
         id: translate
         run: node scripts/translate.mjs
+        working-directory: website
         env:
           AI_PROVIDER: ${{ secrets.AI_PROVIDER }}
           AI_API_KEY: ${{ secrets.AI_API_KEY }}
