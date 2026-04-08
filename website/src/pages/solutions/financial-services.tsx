@@ -1,4 +1,5 @@
 import Layout from "@theme/Layout";
+import useDocusaurusContext from "@docusaurus/useDocusaurusContext";
 
 import Icon from "@site/src/components/Icon";
 
@@ -6,6 +7,7 @@ import FxGradientText from "@site/src/utils/visual-effects/FxGradientText";
 import FxEdgeInnerLightEffect from "@site/src/utils/visual-effects/FxEdgeInnerLightEffect";
 import FxSpotlightEffect from "@site/src/utils/visual-effects/FxSpotlight";
 import FxRecolorIcon from "@site/src/utils/visual-effects/FxRecolorIcon";
+import { useTranslations } from "@site/src/utils/useTranslations";
 
 import { cn } from "@site/src/utils/twUtils";
 
@@ -20,71 +22,42 @@ import styles from "./index.module.scss";
 import commonStyles from "../index.module.scss";
 
 const FEATURES = [
-  {
-    image: IMG_1,
-    title: "Connect analysis with operations",
-    items: [
-      "A one-stop solution for cleansing and extracting multimodal data including reports, contracts and recordings.",
-      "Auto-recognize financial document layouts to produce traceable knowledge chunks.",
-    ],
-  },
-  {
-    image: IMG_2,
-    title: "Decision-ready industry insights",
-    items: [
-      "Combine entity extraction with semantic and context-aware structures to locate and interpret statutes from massive reports, cases and contracts.",
-      "Each response cites its source, enabling one-click navigation to the original paragraph or clause.",
-    ],
-  },
-  {
-    image: IMG_3,
-    title: "Research and risk workflows",
-    items: [
-      "Integrate natively with mainstream financial data sources to support research and decision-making.",
-      "Agent execution is transparent from data retrieval through to analytical conclusions, building trust in every response.",
-    ],
-  },
-  {
-    image: IMG_4,
-    title: "Granular access control",
-    items: [
-      "Real-time document-level ACLs enable fine-tuned control, ensuring users' access to data is precisely scoped to their organizational privileges.",
-      "Implement granular, multi-level isolation (tenant, department, role and project-level), enforcing strict static and dynamic security boundaries.",
-    ],
-  },
+  { img: IMG_1, titleKey: "feature1Title", itemsKey: "feature1Items" },
+  { img: IMG_2, titleKey: "feature2Title", itemsKey: "feature2Items" },
+  { img: IMG_3, titleKey: "feature3Title", itemsKey: "feature3Items" },
+  { img: IMG_4, titleKey: "feature4Title", itemsKey: "feature4Items" },
 ];
 
 const USE_CASES = [
   {
     icon: "RagResearch",
-    title: "Research assistant",
-    description: `A query "Analyze NVDA recent quarter AI revenue" triggers retrieval from internal reports, external research and raw data, culminating in an AI-generated citeable brief.`,
+    titleKey: "useCase1Title",
+    descKey: "useCase1Description",
   },
   {
     icon: "RagSales",
-    title: "Sales compliance assistant",
-    description:
-      "Check sales scripts and product recommendations against regulatory and institutional rules in real-time to reduce sales compliance risks.",
+    titleKey: "useCase2Title",
+    descKey: "useCase2Description",
   },
   {
     icon: "RagPost",
-    title: "Post-investment tracking assistant",
-    description:
-      "RTrack portfolio companies' finance, operations and risk signals, then generate traceable reports to support informed decision-making.",
+    titleKey: "useCase3Title",
+    descKey: "useCase3Description",
   },
   {
     icon: "RagCompliance",
-    title: "Compliance and audit assistant",
-    description:
-      "Consolidate regulatory documents and internal rules, enabling auditors to quickly locate compliance evidence.",
+    titleKey: "useCase4Title",
+    descKey: "useCase4Description",
   },
 ];
 
 export default function PageAdvancedStockResearch() {
+  const { t, getItems } = useTranslations("financialServices");
+
   return (
     <Layout
-      title="Advanced Stock Research"
-      description="Advanced Stock Research"
+      title={t("pageTitle")}
+      description={t("pageDescription")}
       wrapperClassName={styles.page}
     >
       <div className="relative container max-desktop:px-page text-standard text-sm mobile:text-base pb-64">
@@ -104,14 +77,12 @@ export default function PageAdvancedStockResearch() {
 
           <h1 className="mb-8 xl:mb-12 text-4xl">
             <FxGradientText preset="primary" direction="right">
-              Convert diverse financial data into informed decisions
+              {t("headerTitle")}
             </FxGradientText>
           </h1>
 
           <p className="text-xl xl:text-2xl xl:!leading-loose">
-            Tailor financial scenarios with multimodal data parsing and
-            traceable techniques to de-risk investments, streamline business
-            operations and enhance your competitive position.
+            {t("headerSubtitle")}
           </p>
         </header>
 
@@ -121,11 +92,11 @@ export default function PageAdvancedStockResearch() {
           <div className="space-y-48">
             <div className="flex flex-col gap-20 xl:grid xl:grid-cols-2 xl:gap-y-28">
               {FEATURES.map((feature) => (
-                <article key={feature.title} className="flex gap-4">
+                <article key={feature.titleKey} className="flex gap-4">
                   <div className="w-44 desktop:w-48 xl:w-1/3 flex-none hidden md:block">
                     <img
                       className="w-full object-contain object-center aspect-1"
-                      src={feature.image}
+                      src={feature.img}
                       role="presentation"
                     />
                   </div>
@@ -134,13 +105,13 @@ export default function PageAdvancedStockResearch() {
                     <header>
                       <h2 className="text-xl">
                         <FxGradientText preset="primary" direction="right">
-                          {feature.title}
+                          {t(feature.titleKey)}
                         </FxGradientText>
                       </h2>
                     </header>
 
                     <ul className="text-sm leading-6">
-                      {feature.items.map((item) => (
+                      {getItems(feature.itemsKey).map((item) => (
                         <li key={item}>{item}</li>
                       ))}
                     </ul>
@@ -153,15 +124,15 @@ export default function PageAdvancedStockResearch() {
               <header className="text-center mb-32">
                 <h1 id="use-cases" className="text-5xl">
                   <FxGradientText preset="primary" direction="right">
-                    Use cases
+                    {t("useCasesTitle")}
                   </FxGradientText>
                 </h1>
               </header>
 
               <div className="grid grid-cols-1 gap-12 xl:grid-cols-2 xl:gap-20 xl:px-36">
-                {USE_CASES.map(({ icon, ...useCase }) => (
+                {USE_CASES.map((useCase) => (
                   <article
-                    key={useCase.title}
+                    key={useCase.titleKey}
                     className={cn(commonStyles.card, "bg-transparent")}
                   >
                     <header>
@@ -174,16 +145,16 @@ export default function PageAdvancedStockResearch() {
                           ]}
                         >
                           <Icon
-                            icon={icon as any}
+                            icon={useCase.icon as any}
                             className="size-12 text-[3rem] stroke-1"
                           />
                         </FxRecolorIcon>
 
-                        <span>{useCase.title}</span>
+                        <span>{t(useCase.titleKey)}</span>
                       </h2>
                     </header>
 
-                    <p className="text-sm">{useCase.description}</p>
+                    <p className="text-sm">{t(useCase.descKey)}</p>
                   </article>
                 ))}
               </div>

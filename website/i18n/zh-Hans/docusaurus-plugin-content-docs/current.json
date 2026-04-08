@@ -1,0 +1,10 @@
+{
+  "version.label.DEV": {
+    "message": "DEV",
+    "description": "The label for version DEV"
+  },
+  "version.label.0.24.0": {
+    "message": "0.24.0",
+    "description": "The label for version 0.24.0"
+  }
+}

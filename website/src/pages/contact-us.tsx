@@ -1,28 +1,22 @@
-import {
-  createContext,
-  useContext,
-  useEffect,
-  useLayoutEffect,
-  useState,
-} from 'react';
+import { createContext, useContext, useEffect, useState } from "react";
 
-import { useMutation } from '@tanstack/react-query';
-import { useForm } from '@tanstack/react-form';
+import { useMutation } from "@tanstack/react-query";
+import { useForm } from "@tanstack/react-form";
 
 import {
   LucideAlertCircle,
   LucideCheck,
   LucideLoaderCircle,
-} from 'lucide-react';
+} from "lucide-react";
 
-import useDocusaurusContext from '@docusaurus/useDocusaurusContext';
-import Layout from '@theme/Layout';
+import useDocusaurusContext from "@docusaurus/useDocusaurusContext";
+import Layout from "@theme/Layout";
 
-import FxGradientText from '@site/src/utils/visual-effects/FxGradientText';
+import FxGradientText from "@site/src/utils/visual-effects/FxGradientText";
+import { useTranslations } from "@site/src/utils/useTranslations";
 
-import IndexTestimonials from '@site/src/pages/_components/IndexTestimonials';
-import styles from './index.module.scss';
-import { cn } from '../utils/twUtils';
+import styles from "./index.module.scss";
+import { cn } from "../utils/twUtils";
 
 type ContactUsFormValues = {
   first_name: string;
@@ -32,45 +26,44 @@ type ContactUsFormValues = {
   question: string;
 };
 
-
-const MESSAGE_ENDPOINT = 'https://mail.ragflow.io:9378/v1/messages';
+const MESSAGE_ENDPOINT = "https://mail.ragflow.io:9378/v1/messages";
 const DEFAULT_FORM_VALUES: ContactUsFormValues = {
-  first_name: '',
-  last_name: '',
-  company: '',
-  email: '',
-  question: '',
+  first_name: "",
+  last_name: "",
+  company: "",
+  email: "",
+  question: "",
 };
 
 const FormContext = createContext<ReturnType<typeof useForm>>(null);
 
 function SubmitButton() {
   const form = useContext(FormContext);
-  const [visualResultState, setVisualResultState] = useState<'idle' | 'success' | 'error'>('idle');
+  const [visualResultState, setVisualResultState] = useState<
+    "idle" | "success" | "error"
+  >("idle");
+  const { t } = useTranslations("contact");
 
-  const {
-    isPending,
-    mutate,
-  } = useMutation({
+  const { isPending, mutate } = useMutation({
     mutationFn: async (data: FormData) => {
       const values = {
-        first_name: data.get('first_name') as string,
-        last_name: data.get('last_name') as string,
-        company: data.get('company') as string,
-        email: data.get('email') as string,
-        question: data.get('question') as string,
+        first_name: data.get("first_name") as string,
+        last_name: data.get("last_name") as string,
+        company: data.get("company") as string,
+        email: data.get("email") as string,
+        question: data.get("question") as string,
       };
 
       const response = await fetch(MESSAGE_ENDPOINT, {
-        method: 'POST',
+        method: "POST",
         body: JSON.stringify(values),
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
       });
 
       if (!response.ok) {
-        throw new Error('Failed to submit form', {
+        throw new Error("Failed to submit form", {
           cause: response,
         });
       }
@@ -79,77 +72,70 @@ function SubmitButton() {
     },
     onSuccess: () => {
       form.reset();
-      setVisualResultState('success');
+      setVisualResultState("success");
     },
     onError: () => {
-      setVisualResultState('error');
+      setVisualResultState("error");
     },
   });
 
   useEffect(() => {
-    if (visualResultState === 'success' || visualResultState === 'error') {
+    if (visualResultState === "success" || visualResultState === "error") {
       const timeout = setTimeout(() => {
-        setVisualResultState('idle');
+        setVisualResultState("idle");
       }, 3000);
 
       return () => clearTimeout(timeout);
     }
   }, [visualResultState, isPending]);
 
+  const getButtonText = () => {
+    if (isPending) return t("submitting");
+    if (visualResultState === "success") return t("submitted");
+    if (visualResultState === "error") return t("errorSubmitting");
+    return t("submit");
+  };
+
   return (
     <button
       type="submit"
       formAction={mutate}
       className={cn(
-        'inline-flex items-center justify-center gap-2',
-        'text-sm bg-theme-black hover:bg-theme-black/80 focus:bg-theme-black/80',
-        'disabled:bg-theme-black/50',
-        isPending && 'cursor-progress',
-        visualResultState === 'idle' ? '!text-theme-white' : 'cursor-default',
-        visualResultState === 'success' && '!bg-success !text-theme-black',
-        visualResultState === 'error' && '!bg-danger !text-theme-black animate-shake-once',
+        "inline-flex items-center justify-center gap-2",
+        "text-sm bg-theme-black hover:bg-theme-black/80 focus:bg-theme-black/80",
+        "disabled:bg-theme-black/50",
+        isPending && "cursor-progress",
+        visualResultState === "idle" ? "!text-theme-white" : "cursor-default",
+        visualResultState === "success" && "!bg-success !text-theme-black",
+        visualResultState === "error" &&
+          "!bg-danger !text-theme-black animate-shake-once",
       )}
-      disabled={isPending || visualResultState !== 'idle'}
+      disabled={isPending || visualResultState !== "idle"}
     >
-      {isPending
-        ? <LucideLoaderCircle className="animate-spin" />
-        : visualResultState === 'success'
-        ? <LucideCheck />
-        : visualResultState === 'error'
-        ? <LucideAlertCircle />
-        : null
-      }
+      {isPending ? (
+        <LucideLoaderCircle className="animate-spin" />
+      ) : visualResultState === "success" ? (
+        <LucideCheck />
+      ) : visualResultState === "error" ? (
+        <LucideAlertCircle />
+      ) : null}
 
-      <span>
-        {isPending
-          ? 'Submitting...'
-          : visualResultState === 'success'
-          ? 'Submitted'
-          : visualResultState === 'error'
-          ? 'Error while submitting'
-          : 'Submit'
-        }
-      </span>
+      <span>{getButtonText()}</span>
     </button>
   );
 }
 
-function Form<T = ReturnType<typeof useForm>>(props: React.PropsWithChildren<{ form: T }>) {
-  const {
-    children,
-    form,
-  } = props;
+function Form<T = ReturnType<typeof useForm>>(
+  props: React.PropsWithChildren<{ form: T }>,
+) {
+  const { children, form } = props;
 
-  return (
-    // @ts-ignore
-    <FormContext.Provider value={form}>
-      {children}
-    </FormContext.Provider>
-  );
+  return <FormContext.Provider value={form}>{children}</FormContext.Provider>;
 }
 
 export default function ContactUs() {
   const { siteConfig } = useDocusaurusContext();
+  const { t } = useTranslations("contact");
 
   const form = useForm({
     defaultValues: DEFAULT_FORM_VALUES,
@@ -157,11 +143,12 @@ export default function ContactUs() {
 
   return (
     <Layout
-      title={siteConfig.title}
+      title={t("title")}
       description={siteConfig.tagline}
       wrapperClassName={styles.page}
     >
-      <div className="
+      <div
+        className="
         text-standard text-sm mobile:text-base
         container max-desktop:px-page
         pt-12 mobile:pt-20 desktop:pt-24
@@ -171,16 +158,13 @@ export default function ContactUs() {
         <header className="pt-8 py-10 h-full flex flex-col justify-between">
           <div>
             <h1 className="text-5xl font-semibold mb-12">
-              <FxGradientText
-                preset="primary"
-                direction="right"
-              >
-                How can we help?
+              <FxGradientText preset="primary" direction="right">
+                {t("subtitle")}
               </FxGradientText>
             </h1>
 
             <p className="text-2xl text-standard leading-relaxed">
-              Speak to our sales team about plans, pricing, enterprise contracts, or request a demo.
+              {t("salesInfo")}
             </p>
           </div>
 
@@ -193,23 +177,21 @@ export default function ContactUs() {
 
         <article className="p-10 border-0.5 border-solid border-component rounded-xl">
           <header className="mb-12">
-            <h2>Tell us how we can help</h2>
+            <h2>{t("formTitle")}</h2>
           </header>
 
           <Form form={form}>
             <form className="grid grid-cols-2 gap-x-8 gap-y-6">
-              <form.Field
-                name="first_name"
-              >
+              <form.Field name="first_name">
                 {(field) => (
                   <label>
-                    <div>First Name</div>
+                    <div>{t("firstName")}</div>
 
                     <input
                       type="text"
                       name={field.name}
                       value={field.state.value}
-                      placeholder="First Name"
+                      placeholder={t("firstName")}
                       autoComplete="given-name"
                       onChange={(e) => field.handleChange(e.target.value)}
                     />
@@ -220,12 +202,12 @@ export default function ContactUs() {
               <form.Field name="last_name">
                 {(field) => (
                   <label>
-                    <div>Last Name</div>
+                    <div>{t("lastName")}</div>
                     <input
                       type="text"
                       name={field.name}
                       value={field.state.value}
-                      placeholder="Last Name"
+                      placeholder={t("lastName")}
                       autoComplete="family-name"
                       onChange={(e) => field.handleChange(e.target.value)}
                     />
@@ -236,13 +218,13 @@ export default function ContactUs() {
               <form.Field name="company">
                 {(field) => (
                   <label className="col-span-full">
-                    <div>Company Name</div>
+                    <div>{t("companyName")}</div>
 
                     <input
                       type="text"
                       name={field.name}
                       value={field.state.value}
-                      placeholder="Company Name"
+                      placeholder={t("companyName")}
                       autoComplete="organization"
                       onChange={(e) => field.handleChange(e.target.value)}
                     />
@@ -253,14 +235,14 @@ export default function ContactUs() {
               <form.Field name="email">
                 {(field) => (
                   <label className="col-span-full">
-                    <div>Email</div>
+                    <div>{t("email")}</div>
 
                     <input
                       type="email"
                       name={field.name}
                       required
                       value={field.state.value}
-                      placeholder="Email"
+                      placeholder={t("email")}
                       autoComplete="email"
                       onChange={(e) => field.handleChange(e.target.value)}
                     />
@@ -271,12 +253,12 @@ export default function ContactUs() {
               <form.Field name="question">
                 {(field) => (
                   <label className="col-span-full">
-                    <div>What would you like to talk to us about?</div>
+                    <div>{t("question")}</div>
 
                     <textarea
                       name={field.name}
                       value={field.state.value}
-                      placeholder="Please briefly describe what you’d like to discuss, such as your use case, challenges, or what you’re looking to achieve."
+                      placeholder={t("questionPlaceholder")}
                       autoComplete="off"
                       rows={4}
                       onChange={(e) => field.handleChange(e.target.value)}
