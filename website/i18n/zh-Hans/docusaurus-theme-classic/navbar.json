@@ -1,0 +1,78 @@
+{
+  "title": {
+    "message": "RAGFlow",
+    "description": "The title in the navbar"
+  },
+  "logo.alt": {
+    "message": "RAGFlow",
+    "description": "The alt text of the logo"
+  },
+  "item.label.Docs": {
+    "message": "文档",
+    "description": "Navbar item with label Docs"
+  },
+  "item.label.Solutions": {
+    "message": "解决方案",
+    "description": "Navbar item with label Solutions"
+  },
+  "item.label.Resources": {
+    "message": "资源",
+    "description": "Navbar item with label Resources"
+  },
+  "item.label.Community": {
+    "message": "社区",
+    "description": "Navbar item with label Community"
+  },
+  "item.label.Contact us": {
+    "message": "联系我们",
+    "description": "Navbar item with label Contact us"
+  },
+  "item.label.Financial services": {
+    "message": "金融服务",
+    "description": "Navbar item with label Financial services"
+  },
+  "item.label.Legal & compliance": {
+    "message": "法律与合规",
+    "description": "Navbar item with label Legal & compliance"
+  },
+  "item.label.Manufacturing": {
+    "message": "制造业",
+    "description": "Navbar item with label Manufacturing"
+  },
+  "item.label.Education": {
+    "message": "教育",
+    "description": "Navbar item with label Education"
+  },
+  "item.label.Blog": {
+    "message": "博客",
+    "description": "Navbar item with label Blog"
+  },
+  "item.label.Basics": {
+    "message": "基础",
+    "description": "Navbar item with label Basics"
+  },
+  "item.label.Changelog": {
+    "message": "更新日志",
+    "description": "Navbar item with label Changelog"
+  },
+  "item.label.Github": {
+    "message": "Github",
+    "description": "Navbar item with label Github"
+  },
+  "item.label.Discord": {
+    "message": "Discord",
+    "description": "Navbar item with label Discord"
+  },
+  "item.label.X": {
+    "message": "X",
+    "description": "Navbar item with label X"
+  },
+  "item.label.YouTube": {
+    "message": "YouTube",
+    "description": "Navbar item with label YouTube"
+  },
+  "item.label.LinkedIn": {
+    "message": "LinkedIn",
+    "description": "Navbar item with label LinkedIn"
+  }
+}

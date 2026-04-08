@@ -1,0 +1,38 @@
+{
+  "Learn more": {
+    "message": "了解更多"
+  },
+  "Get started": {
+    "message": "开始使用"
+  },
+  "Close": {
+    "message": "关闭"
+  },
+  "Copy": {
+    "message": "复制"
+  },
+  "Copied": {
+    "message": "已复制"
+  },
+  "Loading": {
+    "message": "加载中"
+  },
+  "Error": {
+    "message": "错误"
+  },
+  "Home": {
+    "message": "首页"
+  },
+  "Version": {
+    "message": "版本"
+  },
+  "Versions": {
+    "message": "版本"
+  },
+  "on this page": {
+    "message": "在此页面上"
+  },
+  "Scroll to top": {
+    "message": "回到顶部"
+  }
+}

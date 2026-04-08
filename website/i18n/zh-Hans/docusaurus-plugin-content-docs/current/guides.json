@@ -1,0 +1,194 @@
+{
+  "sidebar.tutorialSidebar.category.User guides": {
+    "message": "用户指南",
+    "description": "The label for category User guides in sidebar tutorialSidebar"
+  },
+  "sidebar.tutorialSidebar.category.User guides.link.generated-index.description": {
+    "message": "RAGFlow 用户指南。",
+    "description": "The generated-index description for label User guides in sidebar tutorialSidebar"
+  },
+  "sidebar.tutorialSidebar.category.Datasets": {
+    "message": "数据集",
+    "description": "The label for category Datasets in sidebar tutorialSidebar"
+  },
+  "sidebar.tutorialSidebar.category.Datasets.link.generated-index.description": {
+    "message": "数据集配置指南。",
+    "description": "The generated-index description for label Datasets in sidebar tutorialSidebar"
+  },
+  "sidebar.tutorialSidebar.category.Advanced enrichment": {
+    "message": "高级富化",
+    "description": "The label for category Advanced enrichment in sidebar tutorialSidebar"
+  },
+  "sidebar.tutorialSidebar.category.Advanced enrichment.link.generated-index.description": {
+    "message": "高级富化。",
+    "description": "The generated-index description for label Advanced enrichment in sidebar tutorialSidebar"
+  },
+  "sidebar.tutorialSidebar.category.Add data source": {
+    "message": "添加数据源",
+    "description": "The label for category Add data source in sidebar tutorialSidebar"
+  },
+  "sidebar.tutorialSidebar.category.Add data source.link.generated-index.description": {
+    "message": "添加各种数据源",
+    "description": "The generated-index description for label Add data source in sidebar tutorialSidebar"
+  },
+  "sidebar.tutorialSidebar.category.dataset-best-practices": {
+    "message": "数据集最佳实践",
+    "description": "The label for category dataset-best-practices in sidebar tutorialSidebar"
+  },
+  "sidebar.tutorialSidebar.category.dataset-best-practices.link.generated-index.description": {
+    "message": "数据集配置最佳实践。",
+    "description": "The generated-index description for label dataset-best-practices in sidebar tutorialSidebar"
+  },
+  "sidebar.tutorialSidebar.category.Chat": {
+    "message": "聊天",
+    "description": "The label for category Chat in sidebar tutorialSidebar"
+  },
+  "sidebar.tutorialSidebar.category.Chat.link.generated-index.description": {
+    "message": "聊天相关指南。",
+    "description": "The generated-index description for label Chat in sidebar tutorialSidebar"
+  },
+  "sidebar.tutorialSidebar.category.chat-best-practices": {
+    "message": "聊天最佳实践",
+    "description": "The label for category chat-best-practices in sidebar tutorialSidebar"
+  },
+  "sidebar.tutorialSidebar.category.chat-best-practices.link.generated-index.description": {
+    "message": "聊天助手配置最佳实践。",
+    "description": "The generated-index description for label chat-best-practices in sidebar tutorialSidebar"
+  },
+  "sidebar.tutorialSidebar.category.Agents": {
+    "message": "Agent",
+    "description": "The label for category Agents in sidebar tutorialSidebar"
+  },
+  "sidebar.tutorialSidebar.category.Agents.link.generated-index.description": {
+    "message": "RAGFlow v0.8.0 引入了 Agent 机制，前端采用无代码工作流编辑器，后端采用全面的基于图的任务编排框架。",
+    "description": "The generated-index description for label Agents in sidebar tutorialSidebar"
+  },
+  "sidebar.tutorialSidebar.category.Quickstarts": {
+    "message": "快速开始",
+    "description": "The label for category Quickstarts in sidebar tutorialSidebar"
+  },
+  "sidebar.tutorialSidebar.category.Quickstarts.link.generated-index.description": {
+    "message": "Agent 特定快速开始",
+    "description": "The generated-index description for label Quickstarts in sidebar tutorialSidebar"
+  },
+  "sidebar.tutorialSidebar.category.Components": {
+    "message": "组件",
+    "description": "The label for category Components in sidebar tutorialSidebar"
+  },
+  "sidebar.tutorialSidebar.category.Components.link.generated-index.description": {
+    "message": "RAGFlow Agent 组件完整参考。",
+    "description": "The generated-index description for label Components in sidebar tutorialSidebar"
+  },
+  "sidebar.tutorialSidebar.category.agent-best-practices": {
+    "message": "Agent 最佳实践",
+    "description": "The label for category agent-best-practices in sidebar tutorialSidebar"
+  },
+  "sidebar.tutorialSidebar.category.agent-best-practices.link.generated-index.description": {
+    "message": "Agent 配置最佳实践。",
+    "description": "The generated-index description for label agent-best-practices in sidebar tutorialSidebar"
+  },
+  "sidebar.tutorialSidebar.category.Memory": {
+    "message": "记忆",
+    "description": "The label for category Memory in sidebar tutorialSidebar"
+  },
+  "sidebar.tutorialSidebar.category.Memory.link.generated-index.description": {
+    "message": "使用记忆指南。",
+    "description": "The generated-index description for label Memory in sidebar tutorialSidebar"
+  },
+  "sidebar.tutorialSidebar.category.Team": {
+    "message": "团队",
+    "description": "The label for category Team in sidebar tutorialSidebar"
+  },
+  "sidebar.tutorialSidebar.category.Team.link.generated-index.description": {
+    "message": "团队相关指南。",
+    "description": "The generated-index description for label Team in sidebar tutorialSidebar"
+  },
+  "sidebar.tutorialSidebar.category.Models": {
+    "message": "模型",
+    "description": "The label for category Models in sidebar tutorialSidebar"
+  },
+  "sidebar.tutorialSidebar.category.Models.link.generated-index.description": {
+    "message": "模型设置指南。",
+    "description": "The generated-index description for label Models in sidebar tutorialSidebar"
+  },
+  "sidebar.tutorialSidebar.category.Administrator guides": {
+    "message": "管理员指南",
+    "description": "The label for category Administrator guides in sidebar tutorialSidebar"
+  },
+  "sidebar.tutorialSidebar.category.Administrator guides.link.generated-index.description": {
+    "message": "系统管理员指南",
+    "description": "The generated-index description for label Administrator guides in sidebar tutorialSidebar"
+  },
+  "sidebar.tutorialSidebar.category.Admin service": {
+    "message": "管理服务",
+    "description": "The label for category Admin service in sidebar tutorialSidebar"
+  },
+  "sidebar.tutorialSidebar.category.Admin service.link.generated-index.description": {
+    "message": "RAGFlow 管理服务",
+    "description": "The generated-index description for label Admin service in sidebar tutorialSidebar"
+  },
+  "sidebar.tutorialSidebar.category.Developer guides": {
+    "message": "开发者指南",
+    "description": "The label for category Developer guides in sidebar tutorialSidebar"
+  },
+  "sidebar.tutorialSidebar.category.Developer guides.link.generated-index.description": {
+    "message": "硬核开发者指南",
+    "description": "The generated-index description for label Developer guides in sidebar tutorialSidebar"
+  },
+  "sidebar.tutorialSidebar.category.MCP": {
+    "message": "MCP",
+    "description": "The label for category MCP in sidebar tutorialSidebar"
+  },
+  "sidebar.tutorialSidebar.category.MCP.link.generated-index.description": {
+    "message": "通过 MCP 访问 RAGFlow 数据集的指南和参考。",
+    "description": "The generated-index description for label MCP in sidebar tutorialSidebar"
+  },
+  "sidebar.tutorialSidebar.category.References": {
+    "message": "参考",
+    "description": "The label for category References in sidebar tutorialSidebar"
+  },
+  "sidebar.tutorialSidebar.category.References.link.generated-index.description": {
+    "message": "杂项参考",
+    "description": "The generated-index description for label References in sidebar tutorialSidebar"
+  },
+  "sidebar.tutorialSidebar.category.Guides": {
+    "message": "指南",
+    "description": "The label for category Guides in sidebar tutorialSidebar"
+  },
+  "sidebar.tutorialSidebar.category.Guides.link.generated-index.description": {
+    "message": "RAGFlow 用户和开发者指南。",
+    "description": "The generated-index description for label Guides in sidebar tutorialSidebar"
+  },
+  "sidebar.tutorialSidebar.category.Migration": {
+    "message": "迁移",
+    "description": "The label for category Migration in sidebar tutorialSidebar"
+  },
+  "sidebar.tutorialSidebar.category.Migration.link.generated-index.description": {
+    "message": "RAGFlow 迁移指南",
+    "description": "The generated-index description for label Migration in sidebar tutorialSidebar"
+  },
+  "sidebar.tutorialSidebar.category.Administration": {
+    "message": "管理",
+    "description": "The label for category Administration in sidebar tutorialSidebar"
+  },
+  "sidebar.tutorialSidebar.category.Administration.link.generated-index.description": {
+    "message": "RAGFlow 管理",
+    "description": "The generated-index description for label Administration in sidebar tutorialSidebar"
+  },
+  "sidebar.tutorialSidebar.category.Developers": {
+    "message": "开发者",
+    "description": "The label for category Developers in sidebar tutorialSidebar"
+  },
+  "sidebar.tutorialSidebar.category.Developers.link.generated-index.description": {
+    "message": "硬核开发者指南",
+    "description": "The generated-index description for label Developers in sidebar tutorialSidebar"
+  },
+  "sidebar.tutorialSidebar.category.Contribution": {
+    "message": "贡献",
+    "description": "The label for category Contribution in sidebar tutorialSidebar"
+  },
+  "sidebar.tutorialSidebar.category.Contribution.link.generated-index.description": {
+    "message": "杂项贡献指南。",
+    "description": "The generated-index description for label Contribution in sidebar tutorialSidebar"
+  }
+}

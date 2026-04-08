@@ -1,33 +1,35 @@
-import type { ReactNode } from 'react';
+import type { ReactNode } from "react";
 
-import Link from '@docusaurus/Link';
-import useDocusaurusContext from '@docusaurus/useDocusaurusContext';
-import Layout from '@theme/Layout';
+import Link from "@docusaurus/Link";
+import useDocusaurusContext from "@docusaurus/useDocusaurusContext";
+import Layout from "@theme/Layout";
 
-// import Icon from '@site/src/components/Icon';
-import { cn } from '@site/src/utils/twUtils';
+import { useTranslations } from "@site/src/utils/useTranslations";
 
-import styles from './index.module.scss';
+import { cn } from "@site/src/utils/twUtils";
 
-import IndexHeroBgAnimation from './_animations/IndexHeroBgAnimation';
+import styles from "./index.module.scss";
 
-import FxEdgeInnerLightEffect from '@site/src/utils/visual-effects/FxEdgeInnerLightEffect';
-import FxGradientText from '@site/src/utils/visual-effects/FxGradientText';
-import FxGlowEffect from '@site/src/utils/visual-effects/FxGlowEffect';
-import FxPolkaDotsBackgroundEffect from '@site/src/utils/visual-effects/FxPolkaDotsBackgroundEffect';
+import IndexHeroBgAnimation from "./_animations/IndexHeroBgAnimation";
 
-import IndexFeatureEtlAnimation from './_animations/IndexFeatureEtlAnimation';
-import IndexFeatureHybridSearchAnimation from './_animations/IndexFeatureHybridSearchAnimation';
-import IndexFeatureUnifiedAgentAnimation from './_animations/IndexFeatureUnifiedAgentAnimation';
-import IndexSolutionEquityInvestmentResearchAnimation from './_animations/IndexSolutionEquityInvestmentResearchAnimation';
-import IndexSolutionLegalPrecedentAnalysisAnimation from './_animations/IndexSolutionLegalPrecedentAnalysisAnimation';
-import IndexSolutionManufacturingMaintenanceSupportAnimation from './_animations/IndexSolutionManufacturingMaintenanceSupportAnimation';
+import FxEdgeInnerLightEffect from "@site/src/utils/visual-effects/FxEdgeInnerLightEffect";
+import FxGradientText from "@site/src/utils/visual-effects/FxGradientText";
+import FxGlowEffect from "@site/src/utils/visual-effects/FxGlowEffect";
+import FxPolkaDotsBackgroundEffect from "@site/src/utils/visual-effects/FxPolkaDotsBackgroundEffect";
 
-import IndexTestimonials from './_components/IndexTestimonials';
-import IndexPricingPlans from './_components/IndexPricingPlans';
+import IndexFeatureEtlAnimation from "./_animations/IndexFeatureEtlAnimation";
+import IndexFeatureHybridSearchAnimation from "./_animations/IndexFeatureHybridSearchAnimation";
+import IndexFeatureUnifiedAgentAnimation from "./_animations/IndexFeatureUnifiedAgentAnimation";
+import IndexSolutionEquityInvestmentResearchAnimation from "./_animations/IndexSolutionEquityInvestmentResearchAnimation";
+import IndexSolutionLegalPrecedentAnalysisAnimation from "./_animations/IndexSolutionLegalPrecedentAnalysisAnimation";
+import IndexSolutionManufacturingMaintenanceSupportAnimation from "./_animations/IndexSolutionManufacturingMaintenanceSupportAnimation";
+
+import IndexTestimonials from "./_components/IndexTestimonials";
+import IndexPricingPlans from "./_components/IndexPricingPlans";
 
 export default function Home(): ReactNode {
   const { siteConfig } = useDocusaurusContext();
+  const { t } = useTranslations("homepage");
 
   return (
     <Layout
@@ -36,7 +38,6 @@ export default function Home(): ReactNode {
       wrapperClassName={styles.page}
     >
       <div className="text-standard text-sm mobile:text-base">
-        {/* Hero */}
         <header
           className="
             relative flex justify-center items-center
@@ -47,43 +48,34 @@ export default function Home(): ReactNode {
             text-center text-lg desktop:text-2xl
           "
         >
-          <IndexHeroBgAnimation
-            key="fxHeroBgEffect"
-            aria-hidden="true"
-          />
+          <IndexHeroBgAnimation key="fxHeroBgEffect" aria-hidden="true" />
 
           <div>
-            <h1 className="
+            <h1
+              className="
               mx-auto text-center text-hero font-bold
               drop-shadow-[0_0_2em_rgb(var(--ragflow-theme-white))] text-pretty
               mb-4 mobile:mb-8 desktop:mb-12"
             >
-              <FxGradientText
-                preset="text"
-              >
-                Build a superior context layer for
-              </FxGradientText>
-              <span>{' '}</span>
+              <FxGradientText preset="text">{t("heroLine1")}</FxGradientText>
+              <span> </span>
               <FxGradientText
                 className="whitespace-nowrap"
                 preset="primary"
                 direction="right"
               >
-                AI agents
+                {t("heroLine2")}
               </FxGradientText>
             </h1>
 
-            <p>
-              Empower your AI agents through the leading open-source RAG engine,
-              <br className="max-desktop:hidden" aria-hidden /> delivering reliable context and an integrated agent platform, built for enterprise.
-            </p>
+            <p>{t("heroSubtitle")}</p>
 
             <FxGlowEffect className="mobile:mt-6 desktop:mt-12">
               <Link
-                to="https://demo.ragflow.io/"
-                className={cn(styles.btn, 'block px-9 py-3 rounded-lg')}
+                to="https://cloud.ragflow.io/"
+                className={cn(styles.btn, "block px-9 py-3 rounded-lg")}
               >
-                Try demo
+                {t("tryDemo")}
               </Link>
             </FxGlowEffect>
           </div>
@@ -94,7 +86,6 @@ export default function Home(): ReactNode {
           />
         </header>
 
-        {/* Main content */}
         <div
           className="
             relative -mt-8 pb-64
@@ -107,27 +98,20 @@ export default function Home(): ReactNode {
           />
 
           <main className="relative z-1 space-y-48">
-            {/* Features */}
             <section
               className="max-desktop:space-y-6 desktop:grid desktop:grid-cols-2 desktop:gap-6"
               aria-label="Features"
             >
-              <article className={cn('flex flex-col bg-standard', styles.card)}>
+              <article className={cn("flex flex-col bg-standard", styles.card)}>
                 <header>
                   <h2 id="feature-1">
-                    <FxGradientText
-                      preset="primary"
-                      direction="right"
-                    >
-                      ETL for AI data
+                    <FxGradientText preset="primary" direction="right">
+                      {t("feature1Title")}
                     </FxGradientText>
                   </h2>
                 </header>
 
-                <p>
-                  Harness our built-in ingestion pipeline to cleanse and process multi-format data,
-                  structuring it into rich semantic representations for superior retrieval.
-                </p>
+                <p>{t("feature1Desc")}</p>
 
                 <IndexFeatureEtlAnimation
                   key="animation"
@@ -137,23 +121,16 @@ export default function Home(): ReactNode {
                 />
               </article>
 
-              <article className={cn('flex flex-col bg-standard', styles.card)}>
+              <article className={cn("flex flex-col bg-standard", styles.card)}>
                 <header>
                   <h2 id="feature-2">
-                    <FxGradientText
-                      preset="primary"
-                      direction="right"
-                    >
-                      High-Precision hybrid search
+                    <FxGradientText preset="primary" direction="right">
+                      {t("feature2Title")}
                     </FxGradientText>
                   </h2>
-
                 </header>
 
-                <p>
-                  Combine vector search, BM25, and custom scoring with advanced re-ranking
-                  to deliver unmatched answer accuracy and context relevance.
-                </p>
+                <p>{t("feature2Desc")}</p>
 
                 <IndexFeatureHybridSearchAnimation
                   key="animation"
@@ -163,21 +140,18 @@ export default function Home(): ReactNode {
                 />
               </article>
 
-              <article className={cn('desktop:col-span-2 bg-standard', styles.card)}>
+              <article
+                className={cn("desktop:col-span-2 bg-standard", styles.card)}
+              >
                 <header>
                   <h2 id="feature-3">
-                    <FxGradientText
-                      preset="primary"
-                      direction="right"
-                    >
-                      Unified AI agent orchestration
+                    <FxGradientText preset="primary" direction="right">
+                      {t("feature3Title")}
                     </FxGradientText>
                   </h2>
                 </header>
 
-                <p>
-                  Build powerful agents in an all-in-one platform, seamlessly integrating RAG, tools, and MCPs within visual workflows.
-                </p>
+                <p>{t("feature3Desc")}</p>
 
                 <IndexFeatureUnifiedAgentAnimation
                   key="animation"
@@ -188,21 +162,11 @@ export default function Home(): ReactNode {
               </article>
             </section>
 
-            {/* Solutions */}
-            <section
-              className="space-y-12"
-              aria-label="Solutions"
-            >
+            <section className="space-y-12" aria-label="Solutions">
               <header>
-                <h1
-                  id="solutions"
-                  className="mb-24 text-center"
-                >
-                  <FxGradientText
-                    preset="primary"
-                    direction="right"
-                  >
-                    Smart solutions for every industry
+                <h1 id="solutions" className="mb-24 text-center">
+                  <FxGradientText preset="primary" direction="right">
+                    {t("solutionsTitle")}
                   </FxGradientText>
                 </h1>
               </header>
@@ -211,28 +175,21 @@ export default function Home(): ReactNode {
                 <div>
                   <header>
                     <h2 id="solution-1">
-                      <FxGradientText
-                        preset="primary info"
-                        direction="right"
-                      >
-                        Equity investment research
+                      <FxGradientText preset="primary info" direction="right">
+                        {t("solution1Title")}
                       </FxGradientText>
                     </h2>
                   </header>
 
-                  <p>
-                    This workflow automates company data collection and consolidates financial metrics with research insights. Enables advanced stock analysis through autonomous planning and multi-agent orchestration.
-                  </p>
+                  <p>{t("solution1Desc1")}</p>
 
-                  <p className="mb-0">
-                    It starts by identifying stock tickers from user queries, then aggregates insights from external authoritative sources and internal records. Ultimately, these qualitative insights are combined with financial metrics to yield a complete investment report.
-                  </p>
+                  <p className="mb-0">{t("solution1Desc2")}</p>
                 </div>
 
                 <FxPolkaDotsBackgroundEffect
                   className={cn(
                     styles.card,
-                    'p-2 flex-none desktop:w-3/5 w-full desktop:max-h-[480px] aspect-video',
+                    "p-2 flex-none desktop:w-3/5 w-full desktop:max-h-[480px] aspect-video",
                   )}
                 >
                   <IndexSolutionEquityInvestmentResearchAnimation
@@ -248,29 +205,21 @@ export default function Home(): ReactNode {
                 <div>
                   <header>
                     <h2 id="solution-2">
-                      <FxGradientText
-                        preset="primary info"
-                        direction="right"
-                      >
-                        Legal precedent analysis
+                      <FxGradientText preset="primary info" direction="right">
+                        {t("solution2Title")}
                       </FxGradientText>
                     </h2>
                   </header>
 
-                  <p>
-                    This workflow provides structured precedent analysis by examining similar legal cases across public sources and internal datasets.
-                  </p>
+                  <p>{t("solution2Desc1")}</p>
 
-                  <p className="mb-0">
-                    Upon case input, key attributes—such as jurisdiction and legal issues—are automatically extracted to formulate search queries and retrieve comparable precedents. The results are then consolidated into a structured analysis reflecting how similar cases were resolved.
-                    This workflow automates company data collection and consolidates financial metrics with research insights. Enables advanced stock analysis through autonomous planning and multi-agent orchestration.
-                  </p>
+                  <p className="mb-0">{t("solution2Desc2")}</p>
                 </div>
 
                 <FxPolkaDotsBackgroundEffect
                   className={cn(
                     styles.card,
-                    'p-2 flex-none desktop:w-3/5 w-full desktop:max-h-[480px] aspect-video',
+                    "p-2 flex-none desktop:w-3/5 w-full desktop:max-h-[480px] aspect-video",
                   )}
                 >
                   <IndexSolutionLegalPrecedentAnalysisAnimation
@@ -286,29 +235,21 @@ export default function Home(): ReactNode {
                 <div>
                   <header>
                     <h2 id="solution-2">
-                      <FxGradientText
-                        preset="primary info"
-                        direction="right"
-                      >
-                        Manufacturing maintenance support
+                      <FxGradientText preset="primary info" direction="right">
+                        {t("solution3Title")}
                       </FxGradientText>
                     </h2>
                   </header>
 
-                  <p>
-                    This workflow provides structured maintenance guidance by accurately sourcing content from internal manuals, with external references used as supplementary support.
-                  </p>
+                  <p>{t("solution3Desc1")}</p>
 
-                  <p className="mb-0">
-                    When a task is entered, the workflow first validates input sufficiency—ensuring essential details are present—then extracts standard protocols from internal maintenance manuals,
-                    integrates supplementary external technical data, and produces clear execution instructions.
-                  </p>
+                  <p className="mb-0">{t("solution3Desc2")}</p>
                 </div>
 
                 <FxPolkaDotsBackgroundEffect
                   className={cn(
                     styles.card,
-                    'p-2 flex-none desktop:w-3/5 w-full desktop:max-h-[480px] aspect-video',
+                    "p-2 flex-none desktop:w-3/5 w-full desktop:max-h-[480px] aspect-video",
                   )}
                 >
                   <IndexSolutionManufacturingMaintenanceSupportAnimation
@@ -358,11 +299,8 @@ export default function Home(): ReactNode {
             >
               <header>
                 <h1 id="start-building">
-                  <FxGradientText
-                    preset="primary"
-                    direction="right"
-                  >
-                    Start building
+                  <FxGradientText preset="primary" direction="right">
+                    {t("ctaTitle")}
                   </FxGradientText>
                 </h1>
               </header>
@@ -370,10 +308,10 @@ export default function Home(): ReactNode {
               <div className="mt-16 flex justify-center items-center gap-8">
                 <FxGlowEffect>
                   <Link
-                    className={cn(styles.btn, 'block')}
-                    to="https://demo.ragflow.io/"
+                    className={cn(styles.btn, "block")}
+                    to="https://cloud.ragflow.io/"
                   >
-                    Try demo
+                    {t("tryDemo")}
                   </Link>
                 </FxGlowEffect>
 
@@ -381,7 +319,7 @@ export default function Home(): ReactNode {
                   className="border-0 bg-standard"
                   href="https://github.com/infiniflow/ragflow"
                 >
-                  <span>Github</span>
+                  <span>{t("ctaGithub")}</span>
                 </Link>
               </div>
             </section>

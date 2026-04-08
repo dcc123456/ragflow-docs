@@ -4,5 +4,6 @@
   "link": {
     "type": "generated-index",
     "description": "Best practices on configuring a dataset."
-  }
+  },
+  "key": "dataset-best-practices"
 }
