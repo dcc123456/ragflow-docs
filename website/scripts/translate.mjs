@@ -16,6 +16,10 @@
  *   AI_ENDPOINT   - Custom API endpoint (optional, for proxies or Azure)
  *   TARGET_LANG   - Target language code (default: zh-Hans)
  *   FORCE_RETRANSLATE - Force retranslate existing files (default: false)
+ *   CONCURRENCY   - Max parallel file translations (default: 3)
+ *   CHUNK_CONCURRENCY - Max parallel chunks per file (default: 5)
+ *   TEST_FILE     - Single file test mode (path relative to website/)
+ *   TRANSLATE_FILES - Comma-separated list of files to translate (for CI incremental translate)
  */
 
 import fs from 'fs';
@@ -26,6 +30,32 @@ import { fileURLToPath } from 'url';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
+// Simple semaphore for concurrency control
+class Semaphore {
+  constructor(max) {
+    this.max = max;
+    this.current = 0;
+    this.queue = [];
+  }
+
+  async acquire() {
+    if (this.current < this.max) {
+      this.current++;
+      return null;
+    }
+    return new Promise(resolve => this.queue.push(resolve));
+  }
+
+  release() {
+    this.current--;
+    if (this.queue.length > 0) {
+      this.current++;
+      const next = this.queue.shift();
+      next();
+    }
+  }
+}
+
 // Configuration from environment variables
 const config = {
   provider: process.env.AI_PROVIDER || 'anthropic',
@@ -34,6 +64,10 @@ const config = {
   endpoint: process.env.AI_ENDPOINT || null,
   targetLang: process.env.TARGET_LANG || 'zh-Hans',
   forceRetranslate: process.env.FORCE_RETRANSLATE === 'true',
+  concurrency: parseInt(process.env.CONCURRENCY) || 3,
+  chunkConcurrency: parseInt(process.env.CHUNK_CONCURRENCY) || 5,
+  testFile: process.env.TEST_FILE || null,  // Single file test mode
+  translateFiles: process.env.TRANSLATE_FILES || null,  // Comma-separated file list
 };
 
 // Validate required config
@@ -109,6 +143,12 @@ const providers = {
           },
         ],
       });
+
+      // Debug: log response structure if choices is empty
+      if (!response.choices || response.choices.length === 0) {
+        console.error('    [DEBUG] Empty response:', JSON.stringify(response));
+        throw new Error('API returned empty choices');
+      }
 
       return response.choices[0].message.content;
     },
@@ -204,45 +244,333 @@ function findMarkdownFiles(dir, baseDir = dir) {
 }
 
 /**
- * Split text into chunks that fit within token limits
+ * Parse Markdown into structured blocks
+ * Keeps code blocks, tables, lists, and headings as atomic units
+ * Special handling for mdx-code-block wrapping JSX components
  */
-function splitIntoChunks(text, maxChars = 4000) {
-  const chunks = [];
+function parseMarkdownBlocks(text) {
+  const blocks = [];
+  let currentBlock = { type: 'content', lines: [] };
   const lines = text.split('\n');
-  let currentChunk = '';
-  let currentSize = 0;
+  let inCodeBlock = false;
+  let inTable = false;
+  let tableHeaderProcessed = false;
+  let inList = false;
+  let inBlockquote = false;
+  let inMdxCodeBlock = false;
+  let listIndent = -1;
 
-  for (const line of lines) {
-    const lineSize = line.length + 1;
-    if (currentSize + lineSize > maxChars && currentChunk) {
-      chunks.push(currentChunk.trim());
-      currentChunk = '';
-      currentSize = 0;
+  const flushBlock = () => {
+    if (currentBlock.lines.length > 0) {
+      blocks.push(currentBlock);
+      currentBlock = { type: 'content', lines: [] };
     }
-    currentChunk += line + '\n';
-    currentSize += lineSize;
+  };
+
+  const getIndent = (line) => {
+    const match = line.match(/^(\s*)/);
+    return match ? match[1].length : 0;
+  };
+
+  for (let i = 0; i < lines.length; i++) {
+    const line = lines[i];
+    const trimmedLine = line.trim();
+
+    // Code block delimiters
+    if (trimmedLine === '```' || trimmedLine.startsWith('```')) {
+      if (!inCodeBlock) {
+        flushBlock();
+        inCodeBlock = true;
+        inMdxCodeBlock = trimmedLine.includes('mdx-code-block');
+        currentBlock = { type: 'code', lines: [line] };
+      } else {
+        currentBlock.lines.push(line);
+        blocks.push(currentBlock);
+        currentBlock = { type: 'content', lines: [] };
+        inCodeBlock = false;
+        inMdxCodeBlock = false;
+        continue;
+      }
+      continue;
+    }
+
+    if (inCodeBlock) {
+      currentBlock.lines.push(line);
+
+      // Special: mdx-code-block - keep following JSX tag in same block
+      if (inMdxCodeBlock && trimmedLine.startsWith('<') && trimmedLine.includes('>')) {
+        // Look ahead to find the closing tag and closing code block
+        const jsxOpenMatch = trimmedLine.match(/^<([A-Z][a-zA-Z0-9]*)[^>]*>$/);
+        if (jsxOpenMatch) {
+          const tagName = jsxOpenMatch[1];
+          // Continue collecting lines until we find the closing tag and closing ```
+          let j = i + 1;
+          let foundClose = false;
+          while (j < lines.length) {
+            const nextLine = lines[j];
+            const nextTrimmed = nextLine.trim();
+            currentBlock.lines.push(nextLine);
+
+            // Check for closing tag of the same JSX component
+            if (nextTrimmed === `</${tagName}>`) {
+              foundClose = true;
+              j++;
+              break;
+            }
+            // Check for closing code block marker
+            if (nextTrimmed === '```') {
+              j++;
+              break;
+            }
+            j++;
+          }
+
+          // Add the closing code block line if we stopped at it
+          if (j < lines.length && lines[j].trim() === '```') {
+            currentBlock.lines.push(lines[j]);
+            j++;
+          }
+
+          // Skip the lines we already consumed
+          i = j - 1;
+          blocks.push(currentBlock);
+          currentBlock = { type: 'content', lines: [] };
+          inCodeBlock = false;
+          inMdxCodeBlock = false;
+          continue;
+        }
+      }
+      continue;
+    }
+
+    // Table detection
+    if (!inTable && line.includes('|') && line.trim().startsWith('|')) {
+      flushBlock();
+      inTable = true;
+      tableHeaderProcessed = false;
+      currentBlock = { type: 'table', lines: [line] };
+      continue;
+    }
+
+    if (inTable) {
+      currentBlock.lines.push(line);
+      // Check if we've passed the header separator (|---|)
+      if (line.match(/^\|[\s-|]+\|/)) {
+        tableHeaderProcessed = true;
+      }
+      // Table ends when we hit a non-table line
+      if (tableHeaderProcessed && !line.includes('|') && line.trim() !== '') {
+        blocks.push(currentBlock);
+        currentBlock = { type: 'content', lines: [] };
+        inTable = false;
+        tableHeaderProcessed = false;
+      } else if (tableHeaderProcessed && i === lines.length - 1) {
+        blocks.push(currentBlock);
+        currentBlock = { type: 'content', lines: [] };
+        inTable = false;
+      }
+      continue;
+    }
+
+    // Blockquote
+    if (line.trim().startsWith('>')) {
+      if (!inBlockquote) {
+        flushBlock();
+        inBlockquote = true;
+        currentBlock = { type: 'blockquote', lines: [line] };
+      } else {
+        currentBlock.lines.push(line);
+      }
+      continue;
+    } else if (inBlockquote) {
+      blocks.push(currentBlock);
+      currentBlock = { type: 'content', lines: [] };
+      inBlockquote = false;
+    }
+
+    // Headings
+    if (line.match(/^#{1,6}\s/)) {
+      flushBlock();
+      blocks.push({ type: 'heading', lines: [line] });
+      continue;
+    }
+
+    // List items
+    if (line.match(/^(\s*)[-*+]\s/) || line.match(/^(\s*)\d+\.\s/)) {
+      const indent = getIndent(line);
+      if (!inList || indent !== listIndent) {
+        if (!inList) {
+          flushBlock();
+        }
+        inList = true;
+        listIndent = indent;
+        currentBlock = { type: 'list', lines: [line] };
+      } else {
+        currentBlock.lines.push(line);
+      }
+      continue;
+    } else if (inList) {
+      blocks.push(currentBlock);
+      currentBlock = { type: 'content', lines: [] };
+      inList = false;
+      listIndent = -1;
+    }
+
+    // Horizontal rule
+    if (line.match(/^[-*_]{3,}\s*$/)) {
+      flushBlock();
+      blocks.push({ type: 'hr', lines: [line] });
+      continue;
+    }
+
+    // Regular content
+    currentBlock.lines.push(line);
   }
 
-  if (currentChunk) {
-    chunks.push(currentChunk.trim());
+  // Flush remaining content
+  if (currentBlock.lines.length > 0) {
+    blocks.push(currentBlock);
   }
 
-  return chunks;
+  return blocks;
 }
 
 /**
- * Translate a single file
+ * Split blocks into chunks that fit within token limits
+ * PRESERVES exact line formatting (indentation, newlines)
  */
-async function translateFile(inputPath, outputPath, relativePath) {
+function splitIntoChunks(blocks, maxChars = 4000) {
+  const chunks = [];
+  let currentLines = [];  // Array of lines, not joined strings
+  let currentSize = 0;
+
+  const flushChunk = () => {
+    if (currentLines.length > 0) {
+      chunks.push(currentLines.join('\n'));
+      currentLines = [];
+      currentSize = 0;
+    }
+  };
+
+  for (const block of blocks) {
+    const blockLines = block.lines;
+    const blockSize = blockLines.reduce((sum, l) => sum + l.length + 1, 0);
+
+    // Atomic blocks (code, table, heading, hr) - never split within
+    if (['code', 'heading', 'hr', 'table', 'blockquote'].includes(block.type)) {
+      if (currentSize + blockSize > maxChars && currentLines.length > 0) {
+        flushChunk();
+      }
+      // Add newline before block if current chunk has content
+      if (currentLines.length > 0 && blockLines[0] !== '') {
+        currentLines.push('');  // blank line separator
+        currentSize += 1;
+      }
+      currentLines.push(...blockLines);
+      currentSize += blockSize;
+      continue;
+    }
+
+    // List - try to keep together as lines
+    if (block.type === 'list') {
+      // If adding this list would exceed limit and we have content, flush first
+      if (currentSize + blockSize > maxChars && currentLines.length > 0) {
+        flushChunk();
+      }
+
+      // Add separator if needed
+      if (currentLines.length > 0 && blockLines[0] !== '') {
+        currentLines.push('');
+        currentSize += 1;
+      }
+
+      currentLines.push(...blockLines);
+      currentSize += blockSize;
+      continue;
+    }
+
+    // Regular content blocks - add lines with proper paragraph separation
+    for (const line of blockLines) {
+      const lineSize = line.length + 1;
+
+      if (line === '') {
+        // Blank line = paragraph separator
+        if (currentLines.length > 0 && currentLines[currentLines.length - 1] !== '') {
+          currentLines.push(line);  // Keep the blank line
+          currentSize += 1;
+        }
+        continue;
+      }
+
+      if (currentSize + lineSize > maxChars && currentLines.length > 0) {
+        flushChunk();
+      }
+      currentLines.push(line);
+      currentSize += lineSize;
+    }
+  }
+
+  if (currentLines.length > 0) {
+    flushChunk();
+  }
+
+  return chunks.length > 0 ? chunks : [''];
+}
+
+/**
+ * Protect MDX/JSX components from being translated
+ * Replaces JSX tags with placeholders that will be restored after translation
+ */
+function protectMdxComponents(text) {
+  const components = [];
+  let componentIndex = 0;
+
+  // Match common Docusaurus MDX components
+  const knownComponents = [
+    'APITable', 'Details', 'details', 'summary',
+    'BrowserWindow', 'Tag', 'blockquote', 'Blockquote'
+  ];
+
+  // Pattern to match JSX components: <TagName>...</TagName> or <TagName />
+  // Only matches components starting with uppercase (custom Docusaurus components)
+  const jsxPattern = /<([A-Z][a-zA-Z0-9]*)\b[^>]*(?:>[\s\S]*?<\/\1>|\/>)/g;
+
+  text = text.replace(jsxPattern, (match) => {
+    // Only protect known custom components
+    const tagMatch = match.match(/^<([A-Z][a-zA-Z0-9]*)/);
+    if (tagMatch && knownComponents.includes(tagMatch[1])) {
+      const placeholder = `__MDX_COMPONENT_${componentIndex}__`;
+      components.push(match);
+      componentIndex++;
+      return placeholder;
+    }
+    return match; // Don't protect unknown components
+  });
+
+  return { text, components };
+}
+
+/**
+ * Restore MDX components after translation
+ */
+function restoreMdxComponents(text, components) {
+  for (let i = 0; i < components.length; i++) {
+    text = text.replace(`__MDX_COMPONENT_${i}__`, components[i]);
+  }
+  return text;
+}
+
+/**
+ * Translate a single file with parallel chunk processing
+ */
+async function translateFile(inputPath, outputPath, relativePath, chunkSem) {
   const content = fs.readFileSync(inputPath, 'utf-8');
+  const fileSize = Buffer.byteLength(content, 'utf-8');
 
   // Check if file already exists and skip if not forcing
   if (fs.existsSync(outputPath) && !config.forceRetranslate) {
-    console.log(`  Skipping (already exists): ${relativePath}`);
     return { status: 'skipped', path: relativePath };
   }
-
-  console.log(`  Translating: ${relativePath}`);
 
   const provider = providers[config.provider];
   if (!provider) {
@@ -250,33 +578,190 @@ async function translateFile(inputPath, outputPath, relativePath) {
   }
 
   try {
-    const chunks = splitIntoChunks(content, 4000);
-    const translatedChunks = [];
+    // Parse markdown into blocks and split into chunks
+    const blocks = parseMarkdownBlocks(content);
+    const chunks = splitIntoChunks(blocks, 4000);
 
-    for (let i = 0; i < chunks.length; i++) {
-      console.log(`    Chunk ${i + 1}/${chunks.length}...`);
-      const translated = await provider.translate(chunks[i]);
-      translatedChunks.push(translated);
-    }
+    console.log(`\n  📄 ${relativePath}`);
+    console.log(`     Size: ${(fileSize / 1024).toFixed(1)} KB | Blocks: ${blocks.length} | Chunks: ${chunks.length}`);
 
-    const result = translatedChunks.join('\n\n');
+    // Translate chunks in parallel with semaphore
+    const translateChunk = async (chunk, idx) => {
+      await chunkSem.acquire();
+      const chunkSize = Buffer.byteLength(chunk, 'utf-8');
+      const startTime = Date.now();
+      try {
+        console.log(`     [${idx + 1}/${chunks.length}] ${(chunkSize / 1024).toFixed(1)} KB translating...`);
+
+        // Protect MDX components before translation
+        const { text: protectedChunk, components } = protectMdxComponents(chunk);
+
+        let result = await provider.translate(protectedChunk);
+
+        // Strip thinking tags and restore MDX components
+        result = stripThinkingContent(result);
+        result = restoreMdxComponents(result, components);
+
+        const elapsed = Date.now() - startTime;
+        console.log(`     [${idx + 1}/${chunks.length}] ✅ done (${elapsed}ms)`);
+
+        return result;
+      } finally {
+        chunkSem.release();
+      }
+    };
+
+    // Process all chunks in parallel (limited by semaphore)
+    const translatedChunks = await Promise.all(
+      chunks.map((chunk, idx) => translateChunk(chunk, idx))
+    );
+
+    let result = translatedChunks.join('\n\n');
 
     // Ensure output directory exists
     fs.mkdirSync(path.dirname(outputPath), { recursive: true });
     fs.writeFileSync(outputPath, result, 'utf-8');
 
-    console.log(`    → Translated: ${outputPath}`);
+    console.log(`     → Saved to ${relativePath}`);
     return { status: 'success', path: relativePath };
   } catch (error) {
-    console.error(`    → Error: ${error.message}`);
+    console.error(`  → Error: ${error.message}`);
     return { status: 'failed', path: relativePath, error: error.message };
   }
 }
 
 /**
- * Main translation process
+ * Strip thinking/reasoning content from AI response
+ */
+function stripThinkingContent(text) {
+  if (!text) return text;
+
+  // Remove <thinking>...</thinking> tags
+  text = text.replace(/<thinking>[\s\S]*?<\/thinking>/gi, '');
+
+  // Remove <think>...</think> tags
+  text = text.replace(/<think>[\s\S]*?<\/think>/gi, '');
+
+  // Remove AI reasoning tags like <reasoning>...</reasoning>
+  text = text.replace(/<reasoning>[\s\S]*?<\/reasoning>/gi, '');
+
+  // Remove any remaining XML-style thinking tags
+  text = text.replace(/<[^>]+>[\s\S]*?<\/[^>]+>/gi, (match) => {
+    const tagName = match.match(/^<([^>]+)>/)?.[1]?.toLowerCase();
+    if (['thinking', 'reasoning', 'reflection'].includes(tagName)) {
+      return '';
+    }
+    return match;
+  });
+
+  // Clean up multiple blank lines and trim
+  text = text.replace(/\n{3,}/g, '\n\n').trim();
+
+  return text;
+}
+
+/**
+ * Test mode: translate a single file
+ */
+async function testSingleFile() {
+  const websiteRoot = path.join(__dirname, '..');
+  const docsDir = path.join(websiteRoot, 'docs');
+  const blogDir = path.join(websiteRoot, 'blog');
+  const basicsDir = path.join(websiteRoot, 'basics');
+  const versionedDir = path.join(websiteRoot, 'versioned_docs');
+
+  // TEST_FILE can be absolute or relative to website root
+  let inputPath = config.testFile;
+  if (!path.isAbsolute(inputPath)) {
+    inputPath = path.join(websiteRoot, inputPath);
+  }
+
+  // Determine the output path preserving directory structure
+  // Docusaurus i18n structure:
+  // - Non-versioned docs: i18n/{locale}/docusaurus-plugin-content-docs/current/{path}
+  // - Versioned docs: i18n/{locale}/docusaurus-plugin-content-docs/{version}/{path}
+  // - Blog: i18n/{locale}/docusaurus-plugin-content-blog/current/{path}
+  let outputPath;
+  let relativePath;
+
+  if (inputPath.startsWith(docsDir)) {
+    relativePath = path.relative(docsDir, inputPath);
+    outputPath = path.join(
+      websiteRoot,
+      `i18n/${config.targetLang}/docusaurus-plugin-content-docs/current`,
+      relativePath
+    );
+  } else if (inputPath.startsWith(basicsDir)) {
+    // basics is under docs in docusaurus, so goes under current/
+    relativePath = path.relative(basicsDir, inputPath);
+    outputPath = path.join(
+      websiteRoot,
+      `i18n/${config.targetLang}/docusaurus-plugin-content-docs/current/basics`,
+      relativePath
+    );
+  } else if (inputPath.startsWith(blogDir)) {
+    relativePath = path.relative(blogDir, inputPath);
+    outputPath = path.join(
+      websiteRoot,
+      `i18n/${config.targetLang}/docusaurus-plugin-content-blog/current`,
+      relativePath
+    );
+  } else if (inputPath.startsWith(versionedDir)) {
+    // versioned_docs: versioned_docs/version-X.Y.Z/subdir/file.md
+    // Output: i18n/{locale}/docusaurus-plugin-content-docs/{version}/{subdir}/file.md
+    const versionedRelative = path.relative(versionedDir, inputPath);
+    relativePath = `versioned_docs/${versionedRelative}`;
+    outputPath = path.join(
+      websiteRoot,
+      `i18n/${config.targetLang}/docusaurus-plugin-content-docs`,
+      versionedRelative
+    );
+  } else {
+    // Fallback: use basename only
+    relativePath = path.basename(inputPath);
+    outputPath = path.join(
+      websiteRoot,
+      `i18n/${config.targetLang}/docusaurus-plugin-content-docs/current`,
+      relativePath
+    );
+  }
+
+  console.log(`\n========================================`);
+  console.log(`  Test Mode: Single File`);
+  console.log(`========================================`);
+  console.log(`  Provider: ${config.provider}`);
+  console.log(`  Model: ${config.model}`);
+  console.log(`  Target: ${config.targetLang}`);
+  console.log(`  Input: ${inputPath}`);
+  console.log(`  Output: ${outputPath}`);
+  console.log(`========================================\n`);
+
+  const chunkSem = new Semaphore(config.chunkConcurrency);
+  const result = await translateFile(inputPath, outputPath, relativePath, chunkSem);
+
+  console.log(`\n========================================`);
+  console.log(`  Result: ${result.status}`);
+  if (result.error) {
+    console.log(`  Error: ${result.error}`);
+  }
+  console.log(`========================================\n`);
+
+  return result;
+}
+
+/**
+ * Main translation process with parallel file processing
  */
 async function main() {
+  // Test mode: single file
+  if (config.testFile) {
+    const result = await testSingleFile();
+    if (result.status === 'failed') {
+      process.exit(1);
+    }
+    return;
+  }
+
   console.log(`\n========================================`);
   console.log(`  AI Documentation Translator`);
   console.log(`========================================`);
@@ -284,21 +769,25 @@ async function main() {
   console.log(`  Model: ${config.model}`);
   console.log(`  Target: ${config.targetLang} (${targetLangName})`);
   console.log(`  Force: ${config.forceRetranslate}`);
+  console.log(`  Concurrency: ${config.concurrency} files, ${config.chunkConcurrency} chunks`);
   console.log(`========================================\n`);
 
   const websiteRoot = path.join(__dirname, '..');
   const docsDir = path.join(websiteRoot, 'docs');
   const blogDir = path.join(websiteRoot, 'blog');
-  const versionedDir = path.join(websiteRoot, 'versioned_docs');
 
-  // Target directories
+  // Target directories - non-versioned docs need 'current' subdirectory
   const targetBase = path.join(websiteRoot, `i18n/${config.targetLang}`);
-  const docsTarget = path.join(targetBase, 'docusaurus-plugin-content-docs');
-  const blogTarget = path.join(targetBase, 'docusaurus-plugin-content-blog');
+  const docsTarget = path.join(targetBase, 'docusaurus-plugin-content-docs/current');
+  const blogTarget = path.join(targetBase, 'docusaurus-plugin-content-blog/current');
 
   // Ensure target directories exist
   fs.mkdirSync(docsTarget, { recursive: true });
   fs.mkdirSync(blogTarget, { recursive: true });
+
+  // Semaphores for concurrency control
+  const fileSem = new Semaphore(config.concurrency);
+  const chunkSem = new Semaphore(config.chunkConcurrency);
 
   const stats = {
     total: 0,
@@ -306,71 +795,103 @@ async function main() {
     skipped: 0,
     failed: 0,
     failedFiles: [],
+    completed: 0,
   };
 
-  // Translate docs/
-  console.log(`\n📚 Translating documentation (docs/)...`);
-  const docFiles = findMarkdownFiles(docsDir);
-  stats.total += docFiles.length;
+  const logProgress = () => {
+    process.stdout.write(`\r  Progress: ${stats.completed}/${stats.total} (✅${stats.success} ⏭️${stats.skipped} ❌${stats.failed})    `);
+  };
 
-  for (const { fullPath, relativePath } of docFiles) {
+  // Parse TRANSLATE_FILES if provided (comma-separated file list)
+  let filesToTranslate = null;
+  if (config.translateFiles) {
+    filesToTranslate = new Set(
+      config.translateFiles.split(',').map(f => f.trim()).filter(f => f)
+    );
+  }
+
+  // Collect all files first
+  console.log(`\n📚 Collecting files...`);
+
+  // Filter function based on filesToTranslate
+  const filterFiles = (files) => {
+    if (!filesToTranslate) return files;
+    return files.filter(({ relativePath }) => filesToTranslate.has(relativePath));
+  };
+
+  const docFiles = filterFiles(findMarkdownFiles(docsDir));
+  const blogFiles = filterFiles(findMarkdownFiles(blogDir));
+
+  stats.total = docFiles.length + blogFiles.length;
+
+  // Versioned docs - SKIP translation (not needed per user request)
+  // if (fs.existsSync(versionedDir)) {
+  //   const versionedEntries = fs.readdirSync(versionedDir, { withFileTypes: true });
+  //   for (const entry of versionedEntries) {
+  //     if (entry.isDirectory()) {
+  //       const versionDir = path.join(versionedDir, entry.name);
+  //       const versionTarget = path.join(targetBase, 'docusaurus-plugin-content-docs', entry.name);
+  //       fs.mkdirSync(versionTarget, { recursive: true });
+  //       const files = filterFiles(findMarkdownFiles(versionDir));
+  //       stats.total += files.length;
+  //       if (files.length > 0) {
+  //         versionedTasks.push({ entry, files, versionTarget });
+  //       }
+  //     }
+  //   }
+  // }
+
+  console.log(`  Found ${docFiles.length} doc files, ${blogFiles.length} blog files`);
+  console.log(`  Total: ${stats.total} files\n`);
+  console.log(`⏳ Starting translation...\n`);
+
+  // Process docs in parallel
+  console.log(`📚 Translating documentation (docs/)...`);
+  const docPromises = docFiles.map(({ fullPath, relativePath }) => {
     const outputPath = path.join(docsTarget, relativePath);
-    const result = await translateFile(fullPath, outputPath, `docs/${relativePath}`);
-    if (result.status === 'success') stats.success++;
-    else if (result.status === 'skipped') stats.skipped++;
-    else {
-      stats.failed++;
-      stats.failedFiles.push(result.path);
-    }
-  }
+    return fileSem.acquire().then(() =>
+      translateFile(fullPath, outputPath, `docs/${relativePath}`, chunkSem)
+        .finally(() => fileSem.release())
+    );
+  });
 
-  // Translate blog/
-  console.log(`\n📝 Translating blog (blog/)...`);
-  const blogFiles = findMarkdownFiles(blogDir);
-  stats.total += blogFiles.length;
-
-  for (const { fullPath, relativePath } of blogFiles) {
+  // Process blog in parallel
+  console.log(`📝 Translating blog (blog/)...`);
+  const blogPromises = blogFiles.map(({ fullPath, relativePath }) => {
     const outputPath = path.join(blogTarget, relativePath);
-    const result = await translateFile(fullPath, outputPath, `blog/${relativePath}`);
-    if (result.status === 'success') stats.success++;
-    else if (result.status === 'skipped') stats.skipped++;
-    else {
-      stats.failed++;
-      stats.failedFiles.push(result.path);
-    }
-  }
+    return fileSem.acquire().then(() =>
+      translateFile(fullPath, outputPath, `blog/${relativePath}`, chunkSem)
+        .finally(() => fileSem.release())
+    );
+  });
 
-  // Translate versioned_docs/
-  if (fs.existsSync(versionedDir)) {
-    console.log(`\n📚 Translating versioned documentation...`);
-    const versionedEntries = fs.readdirSync(versionedDir, { withFileTypes: true });
-
-    for (const entry of versionedEntries) {
-      if (entry.isDirectory()) {
-        const versionDir = path.join(versionedDir, entry.name);
-        const versionTarget = path.join(docsTarget, entry.name);
-        fs.mkdirSync(versionTarget, { recursive: true });
-
-        const files = findMarkdownFiles(versionDir);
-        stats.total += files.length;
-
-        console.log(`  Version: ${entry.name}`);
-        for (const { fullPath, relativePath } of files) {
-          const outputPath = path.join(versionTarget, relativePath);
-          const result = await translateFile(fullPath, outputPath, `versioned_docs/${entry.name}/${relativePath}`);
-          if (result.status === 'success') stats.success++;
-          else if (result.status === 'skipped') stats.skipped++;
-          else {
-            stats.failed++;
-            stats.failedFiles.push(result.path);
-          }
-        }
+  // Helper to track progress
+  const trackProgress = (promise) => {
+    return promise.then((result) => {
+      stats.completed++;
+      if (result.status === 'success') {
+        stats.success++;
+        console.log(`  ✅ ${result.path}`);
+      } else if (result.status === 'skipped') {
+        stats.skipped++;
+        console.log(`  ⏭️  ${result.path} (skipped)`);
+      } else {
+        stats.failed++;
+        stats.failedFiles.push(result.path);
+        console.log(`  ❌ ${result.path} (${result.error})`);
       }
-    }
-  }
+      logProgress();
+      return result;
+    });
+  };
+
+  // Wait for all to complete with progress tracking
+  console.log(`📚 Translating docs/ (${docFiles.length} files)...`);
+  await Promise.all(docPromises.map(trackProgress));
+  await Promise.all(blogPromises.map(trackProgress));
 
   // Print summary
-  console.log(`\n========================================`);
+  console.log(`\n\n========================================`);
   console.log(`  Translation Summary`);
   console.log(`========================================`);
   console.log(`  Total files: ${stats.total}`);
