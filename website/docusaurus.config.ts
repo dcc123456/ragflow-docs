@@ -387,12 +387,6 @@ const config: Config = {
         src: "img/logo.svg",
       },
       items: [
-        {
-          type: "docsVersionDropdown",
-          position: "left",
-          versions: getVersions(),
-        },
-
         // Left
         {
           type: "docSidebar",

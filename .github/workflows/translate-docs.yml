@@ -39,6 +39,15 @@ jobs:
         run: npm install @anthropic-ai/sdk openai
         working-directory: website
 
+      - name: Get changed files
+        id: changed
+        run: |
+          # Get list of changed markdown files
+          CHANGED_FILES=$(git diff --name-only HEAD^ HEAD -- "website/docs/**/*.md" "website/blog/**/*.md" "website/versioned_docs/**/*.md" | sed 's|^website/||' | tr '\n' ',')
+          CHANGED_FILES=${CHANGED_FILES%,}  # Remove trailing comma
+          echo "Changed files: $CHANGED_FILES"
+          echo "files=$CHANGED_FILES" >> $GITHUB_OUTPUT
+
       - name: Translate docs
         id: translate
         run: node scripts/translate.mjs
@@ -50,6 +59,8 @@ jobs:
           AI_ENDPOINT: ${{ secrets.AI_ENDPOINT }}
           TARGET_LANG: zh-Hans
           FORCE_RETRANSLATE: ${{ inputs.force_retranslate || false }}
+          TEST_FILE: ./docs/develop/switch_doc_engine.md
+          TRANSLATE_FILES: ${{ steps.changed.outputs.files }}
 
       - name: Create Pull Request
         if: github.event_name == 'workflow_dispatch'
