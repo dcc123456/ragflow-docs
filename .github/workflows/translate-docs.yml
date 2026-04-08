@@ -18,6 +18,7 @@ on:
 
 env:
   NODE_VERSION: "20"
+  TARGET_LANG: zh-Hans
 
 jobs:
   translate:
@@ -57,7 +58,7 @@ jobs:
           AI_API_KEY: ${{ secrets.AI_API_KEY }}
           AI_MODEL: ${{ secrets.AI_MODEL }}
           AI_ENDPOINT: ${{ secrets.AI_ENDPOINT }}
-          TARGET_LANG: zh-Hans
+          TARGET_LANG: ${{ env.TARGET_LANG }}
           FORCE_RETRANSLATE: ${{ inputs.force_retranslate || false }}
           TEST_FILE: ./docs/develop/switch_doc_engine.md
           TRANSLATE_FILES: ${{ steps.changed.outputs.files }}
