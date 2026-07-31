@@ -1,0 +1,13 @@
+<svg width="32" height="32" viewBox="106 214 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+<g id="drive">
+<g id="drive 1">
+<path id="Vector_9" d="M131.441 231.833L125.116 220.833H118.883L125.208 231.833H131.441ZM119.891 232.75L116.775 238.25H128.783L131.9 232.75H119.891ZM118.058 222.208L112.1 232.75L115.216 238.25L121.266 227.708L118.058 222.208Z" fill="url(#drive_paint1_linear)"/>
+</g>
+</g>
+<defs>
+<linearGradient id="drive_paint1_linear" x1="122" y1="221.434" x2="122" y2="238.25" gradientUnits="userSpaceOnUse">
+<stop stop-color="white"/>
+<stop offset="1" stop-color="#6D6D6D"/>
+</linearGradient>
+</defs>
+</svg>

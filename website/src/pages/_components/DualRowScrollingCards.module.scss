@@ -1,0 +1,101 @@
+.root {
+  @apply relative w-full overflow-hidden;
+  @apply flex flex-col select-none;
+
+  gap: var(--drsc-row-gap);
+
+  // Edge gradient fade. The two absolute layers mask the left and right
+  // sides of the rows so cards appear to dissolve off-screen.
+  &::before,
+  &::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    width: var(--drsc-fade-width);
+    z-index: 1;
+    pointer-events: none;
+  }
+
+  &::before {
+    left: 0;
+    background: linear-gradient(
+      to right,
+      rgb(var(--ragflow-bg-standard)) 0%,
+      rgb(var(--ragflow-bg-standard) / 80%) 35%,
+      rgb(var(--ragflow-bg-standard) / 0%) 100%
+    );
+  }
+
+  &::after {
+    right: 0;
+    background: linear-gradient(
+      to left,
+      rgb(var(--ragflow-bg-standard)) 0%,
+      rgb(var(--ragflow-bg-standard) / 80%) 35%,
+      rgb(var(--ragflow-bg-standard) / 0%) 100%
+    );
+  }
+}
+
+.row {
+  @apply flex w-fit will-change-transform;
+
+  gap: var(--drsc-card-gap);
+  // Each row completes one full cycle in its own duration.
+  animation-duration: var(--drsc-row-duration, 40s);
+  animation-timing-function: linear;
+  animation-iteration-count: infinite;
+  animation-name: drsc-fly-left;
+}
+
+.rowLeft {
+  // Default — explicit for clarity.
+  animation-name: drsc-fly-left;
+}
+
+.rowRight {
+  // Negate the timeline so the same keyframes run in reverse.
+  animation-direction: reverse;
+}
+
+.pauseOnHover {
+  &:hover {
+    animation-play-state: paused;
+  }
+}
+
+.card {
+  @apply p-5 rounded-xl border border-solid border-component;
+  @apply bg-standard shrink-0;
+
+  width: var(--drsc-card-width);
+  background-color: rgb(var(--ragflow-theme-black) / 2%);
+}
+
+.avatar {
+  @apply shrink-0 rounded-full object-cover;
+
+  width: 2.5rem;
+  height: 2.5rem;
+}
+
+.avatarFallback {
+  @apply inline-flex items-center justify-center font-semibold text-secondary;
+  // Slightly elevated vs. the card body, so the monogram reads on the dark card.
+  background-color: rgb(var(--ragflow-border-component));
+
+  font-size: 0.85rem;
+  letter-spacing: 0.02em;
+}
+
+
+@keyframes drsc-fly-left {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    // The row contains the card set twice, so -50% is exactly one cycle.
+    transform: translateX(-50%);
+  }
+}

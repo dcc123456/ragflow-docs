@@ -1,0 +1,14 @@
+<svg width="24" height="24" viewBox="81 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+<g id="gmail">
+<g id="gmail 1">
+<path id="Vector_2" d="M100 7.62509V16.3751C100 16.8709 99.6208 17.2501 99.125 17.2501H98.25V9.30918L93 13.0793L87.75 9.30918V17.2501H86.875C86.3786 17.2501 86 16.8709 86 16.3751V7.62509C86 7.37718 86.0945 7.15843 86.2514 7.00209C86.3333 6.92064 86.4307 6.85638 86.5378 6.8131C86.6448 6.76982 86.7595 6.7484 86.875 6.75009H87.1667L93 10.9793L98.8333 6.75009H99.125C99.3729 6.75009 99.5917 6.84459 99.7486 7.00209C99.9061 7.15843 100 7.37718 100 7.62509Z" 
+fill="url(#gmail_paint1_linear)"/>
+</g>
+</g>
+<defs>
+<linearGradient id="gmail_paint1_linear" x1="92.9999" y1="7.11207" x2="92.9999" y2="17.2501" gradientUnits="userSpaceOnUse">
+<stop stop-color="white"/>
+<stop offset="1" stop-color="#6D6D6D"/>
+</linearGradient>
+</defs>
+</svg>
