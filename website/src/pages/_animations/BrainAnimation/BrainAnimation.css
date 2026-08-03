@@ -1,0 +1,151 @@
+/* Container: holds the cube (top) + SVG boxes (bottom).
+   Fills its parent (App.tsx passes `absolute inset-0 size-full`).
+   `container-type: size` enables cqw/cqh units used by the frame below. */
+.brain-animation {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  container-type: size;
+}
+
+/* Frame that exactly matches the SVG's rendered area.
+   This is the CSS equivalent of preserveAspectRatio="xMidYMid meet":
+   the frame fills whichever container dimension is limiting, and is
+   letterboxed on the other. With container-type: size, cqw/cqh inside
+   the frame are relative to the SVG's rendered size - so the cube can
+   be positioned in SVG coordinate space and will always align with the
+   light cone, regardless of container dimensions. */
+.brain-svg-frame {
+  position: absolute;
+  /* SVG viewBox aspect = 250 / 555. Meet = min of the two dimensions. */
+  width: min(100cqw, calc(100cqh * 250 / 555));
+  height: min(100cqh, calc(100cqw * 555 / 250));
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  container-type: size;
+  pointer-events: none;
+  z-index: 2;
+}
+
+/* ------------------------------------------------------------------ */
+/* CSS 3D rotating cube                                                */
+/* ------------------------------------------------------------------ */
+.brain-cube-stage {
+  /* 23.44% of the frame height = 90px when frame is 384px tall.
+     Scales with the SVG so the cube and the 3 squares stay in sync. */
+  --cube-size: 23.44cqh;
+  position: absolute;
+  /* Light cone top is at y=61 in viewBox; with viewBox "-40 -145 250 555",
+     that's (61+145)/555 = 37.1% of the frame height. */
+  top: calc(37.1cqh - var(--cube-size) * 0.9);
+  left: 50%;
+  width: var(--cube-size);
+  height: var(--cube-size);
+  margin-left: calc(var(--cube-size) / -2);
+  perspective: calc(var(--cube-size) * 10);
+  perspective-origin: 50% 35%;
+}
+
+.brain-cube {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  transform-style: preserve-3d;
+  animation: brain-cube-spin 14s linear infinite;
+}
+
+.brain-cube .cube-face {
+  position: absolute;
+  inset: 0;
+  border: 1px solid rgba(255, 255, 255, 0.45);
+  box-shadow:
+    inset 0 0 24px rgba(255, 255, 255, 0.18),
+    inset 0 0 6px rgba(0, 0, 0, 0.15);
+  backface-visibility: hidden;
+}
+
+.brain-cube .cube-front {
+  transform: translateZ(calc(var(--cube-size) / 2));
+  background: linear-gradient(135deg, #01beb4 0%, #42ffa4 100%);
+}
+.brain-cube .cube-back {
+  transform: rotateY(180deg) translateZ(calc(var(--cube-size) / 2));
+  background: linear-gradient(135deg, #0198be 0%, #76ffbd 100%);
+}
+.brain-cube .cube-right {
+  transform: rotateY(90deg) translateZ(calc(var(--cube-size) / 2));
+  background: linear-gradient(135deg, #2fd7ce 0%, #3ce091 100%);
+}
+.brain-cube .cube-left {
+  transform: rotateY(-90deg) translateZ(calc(var(--cube-size) / 2));
+  background: linear-gradient(135deg, #2fd7ce 0%, #3ce091 100%);
+}
+.brain-cube .cube-top {
+  transform: rotateX(90deg) translateZ(calc(var(--cube-size) / 2));
+  background: linear-gradient(135deg, #82fff8 0%, #2bffb9 100%);
+}
+.brain-cube .cube-bottom {
+  transform: rotateX(-90deg) translateZ(calc(var(--cube-size) / 2));
+  background: linear-gradient(135deg, #01beb4 0%, #42ffa4 100%);
+}
+
+/* Scale the label text with the cube. 0.178 = 16/90 (text-base / cube-size).
+   Specificity (0,2,1) beats Tailwind's .text-base (0,1,0). */
+.brain-cube .cube-left p {
+  font-size: calc(var(--cube-size) * 0.178);
+}
+
+/* Cube balanced on one corner (pointing down) + spinning around its body
+   diagonal. The static tilt `rotateZ(45) rotateX(-35.26)` maps the cube's
+   local (1,1,1) body diagonal onto the world Y-axis (which points down in
+   CSS), so the (1,1,1) corner ends up at the bottom. `rotate3d(1,1,1,angle)`
+   is rightmost, so it runs in the cube's LOCAL frame - i.e. the cube tumbles
+   around its own corner-to-corner axis, and the static tilt then points that
+   axis straight down. The visible result: a hexagonal silhouette with three
+   faces rotating around the vertical body diagonal. */
+@keyframes brain-cube-spin {
+  0% {
+    transform: rotateZ(35deg) rotateX(-39.26deg) rotate3d(1, 1, 1, 0deg);
+  }
+  100% {
+    transform: rotateZ(35deg) rotateX(-39.26deg) rotate3d(1, 1, 1, 360deg);
+  }
+}
+
+/* ------------------------------------------------------------------ */
+/* SVG boxes: compress + bounce                                       */
+/* ------------------------------------------------------------------ */
+.brain-svg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+}
+
+/* Only the middle cube animates; top and bottom cubes stay static.
+   Gentle up-and-down float (translateY) - the whole cube drifts up and
+   settles back, no compression. */
+.brain-svg .box-2 {
+  transform-box: fill-box;
+  animation: brain-box-float 3s ease-in-out infinite;
+}
+
+@keyframes brain-box-float {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-8px);
+  }
+}
+
+/* Respect reduced motion preference. */
+@media (prefers-reduced-motion: reduce) {
+  .brain-cube,
+  .brain-svg .box-2 {
+    animation: none;
+  }
+}

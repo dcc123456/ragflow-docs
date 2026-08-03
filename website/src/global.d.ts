@@ -19,6 +19,12 @@ module '*.webp' {
   export default string;
 }
 
+module '*.svg?react' {
+  import type { FC, SVGProps } from 'react';
+  const ReactComponent: FC<SVGProps<SVGSVGElement>>;
+  export default ReactComponent;
+}
+
 module '*.md' {
   import { ComponentType } from 'react';
   import { MDXProps } from 'mdx/types';
