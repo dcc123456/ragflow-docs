@@ -34,7 +34,7 @@
 .brain-cube-stage {
   /* 23.44% of the frame height = 90px when frame is 384px tall.
      Scales with the SVG so the cube and the 3 squares stay in sync. */
-  --cube-size: 23.44cqh;
+  --cube-size: 30cqh;
   position: absolute;
   /* Light cone top is at y=61 in viewBox; with viewBox "-40 -145 250 555",
      that's (61+145)/555 = 37.1% of the frame height. */
