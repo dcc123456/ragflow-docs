@@ -18,7 +18,7 @@
     @apply border-0 px-4 py-2 rounded-md;
     @apply text-standard bg-standard transition-all;
     @apply border-0.5 border-solid border-component;
-    @apply outline-offset-2;
+    @apply outline-offset-4;
     line-height: var(--ragflow-line-height-base);
     font-size: inherit;
   }
@@ -40,8 +40,8 @@
     width: 100%;
     aspect-ratio: 1 / 1;
     border-radius: 16px;
-    border: 1px solid rgb(var(--ragflow-border-component));
-    background-color: rgb(var(--ragflow-theme-black) / 2%);
+    // border: 1px solid rgb(var(--ragflow-border-component));
+    // background-color: rgb(var(--ragflow-theme-black) / 2%);
     overflow: hidden;
     display: flex;
     align-items: center;
@@ -93,10 +93,11 @@
   }
 
   .layerLabels {
-    margin-top: 0.5rem;
+    margin-top: 7rem;
+    margin-left: -4rem;
     display: flex;
     flex-direction: column;
-    gap: 0.5rem;
+    gap: 2.5rem;
 
     li {
       display: flex;

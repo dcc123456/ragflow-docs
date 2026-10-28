@@ -6,6 +6,7 @@ type Props<As extends React.ElementType> = PropsWithAs<{
   style?: React.CSSProperties;
   className?: string;
   size?: number | string;
+  color?: { from: string; to: string };
   interactive?: boolean;
   glowOnInteract?: boolean;
 }, As>
@@ -22,6 +23,7 @@ export default function FxGlowEffect<As extends React.ElementType = 'span'>(prop
     children,
     className,
     size = 0,
+    color = { from: '#42b6ff', to: '#2be8aa' },
     interactive: _interactive,
     glowOnInteract = false,
     ...restProps
@@ -55,8 +57,8 @@ export default function FxGlowEffect<As extends React.ElementType = 'span'>(prop
       style={{
         ...style,
         '--fx-glow-size': sanitizedSize,
-        '--tw-gradient-from': '#42b6ff var(--tw-gradient-from-position)',
-        '--tw-gradient-to': '#2be8aa var(--tw-gradient-to-position)',
+        '--tw-gradient-from': `${color.from} var(--tw-gradient-from-position)`,
+        '--tw-gradient-to': `${color.to} var(--tw-gradient-to-position)`,
         '--tw-gradient-stops': 'var(--tw-gradient-from), var(--tw-gradient-to)',
       } as React.CSSProperties}
     >

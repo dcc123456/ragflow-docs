@@ -260,7 +260,7 @@ function HowAnimation({ className, ...restProps }: React.HTMLAttributes<HTMLDivE
               // }}
               innerColor={{
                 from: '#0f0',
-                to: '#ff0',
+                to: '#0f0',
               }}
               animated={!shouldReduceMotion}
               begin={cogBegin}

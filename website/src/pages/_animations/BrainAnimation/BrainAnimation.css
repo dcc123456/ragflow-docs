@@ -22,7 +22,7 @@
   height: min(100cqh, calc(100cqw * 555 / 250));
   top: 50%;
   left: 50%;
-  transform: translate(-50%, -50%);
+  transform: translate(-50%, -50%) scale(0.7);
   container-type: size;
   pointer-events: none;
   z-index: 2;

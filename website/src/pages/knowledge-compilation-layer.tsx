@@ -66,11 +66,11 @@ export default function KnowledgeCompilationLayerPage(): ReactNode {
       <div className='text-standard text-sm mobile:text-base'>
         {/* Hero */}
         <header className='relative container max-desktop:px-page pt-10 mobile:pt-20 desktop:pt-10 pb-10 mobile:pb-20 desktop:pb-28'>
-          <FxEdgeInnerLightEffect
+          {/* <FxEdgeInnerLightEffect
             position='bottom'
             className='w-[150%] min-w-[960px] h-[600px] left-1/2 -translate-x-1/2 bottom-0 opacity-75 mix-blend-screen'
             aria-hidden='true'
-          />
+          /> */}
           <div className={styles.hero}>
             <div className='flex flex-col gap-6'>
               <h1 className='text-hero leading-tight text-start flex flex-col gap-2 items-start'>
@@ -84,7 +84,11 @@ export default function KnowledgeCompilationLayerPage(): ReactNode {
               <p className='text-secondary text-lg desktop:text-xl leading-loose max-w-md'>
                 Turn raw enterprise data into structured, reusable knowledge assets for AI systems.
               </p>
-              <FxGlowEffect className='self-start'>
+              <FxGlowEffect
+                className='self-start'
+                size={6}
+                color={{ from: '#7dd0ff', to: '#42ffbd' }}
+              >
                 <Link
                   to='https://cloud.ragflow.io/'
                   className={cn(styles.btn, 'legacy-btn', 'block px-6 py-3 rounded-sm text-base')}
@@ -112,12 +116,12 @@ export default function KnowledgeCompilationLayerPage(): ReactNode {
         </header>
 
         <div className='relative container max-desktop:px-page pb-64 space-y-48'>
-          <FxEdgeInnerLightEffect
+          {/* <FxEdgeInnerLightEffect
             position='top'
             className='w-[150%] min-w-[960px] h-[600px] left-1/2 -translate-x-1/2 top-0 opacity-75 mix-blend-screen'
             // className='w-[150%] min-w-[960px] h-[600px] left-1/2 -translate-x-1/2 -translate-y-1/2 top-[108px] opacity-50 mix-blend-screen'
             aria-hidden='true'
-          />
+          /> */}
 
           {/* Why it Matters */}
           <section aria-labelledby='why-it-matters' className='!mt-0'>
